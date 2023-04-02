@@ -1,0 +1,88 @@
+
+
+ReplicasetV1 = new ReplSetTest({name:"ReplicasetV1",nodes:3});
+
+//Se usara para crear las instancias que actuaran como servidores (nodos)//
+
+ReplicasetV1.startSet()
+
+//Se usara para asignar los nodos del grupo de Replica//
+
+ReplicasetV1.initiate()
+
+//Se usara para arrancar el proceso de Replica//
+
+
+//===========================================================================//
+
+
+conn = new Mongo ("localhost:20000")
+//Nos conectamos al nodo que se haya asignado como primario"
+testDB=conn.getDB("Mundial")
+//Nos conectamos a la base de datos que hayamos creado para el trabajo del torneo deportivo//
+testDB.isMaster()
+//Con esta función podemos comprobar si estamos conectados en el nodo primario o algún nodo secundario//
+
+testDB.Equipos.instert(
+{
+    _id:33,
+    Continente: "America",
+    Nombre: "Colombia",
+})
+testDB.Equipos.instert(
+{
+    _id:34,
+    Continente: "America",
+    Nombre: "Haiti",
+})
+testDB.Equipos.instert(
+{
+    _id:35,
+    Continente: "Asia",
+    Nombre: "Corea del Norte",
+})
+testDB.Equipos.instert(
+{
+    _id:36,
+    Continente: "Afirca",
+    Nombre: "Egipto",
+})
+
+//Estos fueron los inserts que use para el ejercicio//
+
+testDB.Equipos.count()
+//Funcion usada para que nos arroje la cantidad de documentos insertados en la tabla//
+
+
+//=========================================================================================//
+
+
+connSecondary = new Mongo("localhost:20001")
+//Nos conectamos a otro nodo//
+secondaryTestDB = connSecondary.getDB("Mundial")
+//Nos conectamos nuevamente a la base de datos del torneo deportivo//
+secondaryTestDB.isMaster()
+//Usando la misma funcion podemos comprobar si estamos en un nodo secundario o primario//
+secondaryTestDB.Equipos.count()
+//De esta forma verificamos cuantos registros fueron insertados a la tabla Equipos desde el nodo primario//
+
+
+//=======================================================================================================================//
+
+
+conn = new Mongo ("localhost:20000")
+testDB=conn.getDB("Mundial")
+testDB.isMaster()
+//Nos conectamos al nodo primario nuevamente//
+testDB.adminCommand({shutdown:1})
+//Se ejecuta un adminCommand que nos permite apagar este nodo, con la finalidad de simular una caida de servidores//
+
+
+//========================================================================================================================//
+
+
+connNewPrimary = new Mongo ("localhost:20001")
+newPrimaryDB = connNewPrimary.getDB("Mundial")
+//Nos conectamos al nodo 20001 ya que detuvimos el 20000 y nos conectamos a la base de datos que hemos venido utilizando//
+newPrimaryDB.isMaster()
+//Con la funcion isMaster verificamos que este ha sido promovido a nodo primario luego de la caida del servidor principal//
